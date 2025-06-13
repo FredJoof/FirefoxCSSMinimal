@@ -1,46 +1,63 @@
 :root {
-  --navbar-width: 500px; 
-  --navbar-width-focused: 800px;
+  /* Set preferred size of url bar */
+  --url-max-width: 300px;
+  --url-max-width-focused: 600px;
+
+  /* Change depending on size of ui elements present */
+  --navbar-elements-left: 128px;
+  --navbar-elements-right: 64px;
+
+  
+  --navbar-width-left: calc(var(--url-max-width) + var(--navbar-elements-left));
+  --navbar-width-left-focused: calc(var(--url-max-width-focused) + var(--navbar-elements-left));
   --navbar-up-offset: -44px;
   --navbar-bot: 4px; 
-  --url-max-width-not-focused: 300px;
-  --tab-border-radius: 16px !important;
+  --windows-buttons-width: 128px;
   
+  --tab-border-radius: 16px !important;
   --toolbar-bgcolor: rgba(255, 255, 255, 0) !important;
 }
 
 #nav-bar {
-  /* background-color: red !important; */
-  margin: var(--navbar-up-offset) calc(100vw - var(--navbar-width)) var(--navbar-bot) 0px !important;
+  margin: var(--navbar-up-offset) var(--windows-buttons-width) var(--navbar-bot) 0px !important;
+  pointer-events: none !important;
 }
 body:has(#urlbar[open]) #nav-bar {
-  /* background-color: darkred !important; */
-  margin: var(--navbar-up-offset) calc(100vw - var(--navbar-width-focused)) var(--navbar-bot) 0px !important;
+  margin: var(--navbar-up-offset) var(--windows-buttons-width) var(--navbar-bot) 0px !important;
+}
+
+#nav-bar toolbarbutton, #nav-bar .toolbarbutton-icon, #nav-bar .urlbar-icon, #urlbar {
+  pointer-events: auto !important;
 }
 
 
-#TabsToolbar {
-  /* background-color: blue !important; */
-  -moz-padding-start: var(--navbar-width) !important;
+#TabsToolbar{
+  margin-left: var(--navbar-width-left) !important;
 }
 body:has(#urlbar[open]) #TabsToolbar {
-  /* background-color: purple !important; */
-  -moz-padding-start: var(--navbar-width-focused) !important;
+  margin-left: var(--navbar-width-left-focused) !important;
 }
 
 
 #urlbar-container {
-  max-width: var(--url-max-width-not-focused);
+  max-width: var(--url-max-width);
 }
 body:has(#urlbar[open]) #urlbar-container{
-  max-width: 100vw !important;
+  max-width: var(--url-max-width-focused) !important;
 }
 
 
 
 .titlebar-spacer[type="post-tabs"] {
-  width: 0px !important;
+  width: var(--navbar-elements-right) !important;
 }
+
+#unified-extensions-button{
+  margin-left: auto !important;
+  margin-right: 0px !important;
+}
+
+
 .tabbrowser-tab:not([selected]) .tab-background {
   background-color: rgba(120, 120, 120, 0.10) !important;
 }

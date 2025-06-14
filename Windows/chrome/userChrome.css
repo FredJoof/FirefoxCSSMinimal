@@ -52,6 +52,10 @@ body:has(#urlbar[open]) #urlbar-container{
   width: var(--navbar-elements-right) !important;
 }
 
+.titlebar-spacer[type="pre-tabs"] {
+  display: none !important;
+}
+
 #unified-extensions-button{
   margin-left: auto !important;
   margin-right: 0px !important;

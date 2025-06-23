@@ -29,7 +29,12 @@ body:has(#urlbar[open]) #nav-bar {
 #nav-bar toolbarbutton, #nav-bar .toolbarbutton-icon, #nav-bar .urlbar-icon, #urlbar {
   pointer-events: auto !important;
 }
-
+.panel-view,
+.panel-arrowcontent,
+#customizationui-widget-panel,
+.panel-subview-body {
+  pointer-events: auto !important;
+}
 
 #TabsToolbar{
   margin-left: var(--navbar-width-left) !important;

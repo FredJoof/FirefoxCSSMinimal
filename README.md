@@ -17,3 +17,6 @@ Now install the CSS
 3. Copy `userChrome.css` into the `chrome` folder.
 4. In Firefox, go to `about:config` and set `toolkit.legacyUserProfileCustomizations.stylesheets` to `true`.
 5. Restart Firefox.
+
+## Additionally
+Also recommended to use the extenstion [Adaptive Tab Bar Color](https://addons.mozilla.org/en-US/firefox/addon/adaptive-tab-bar-colour/)

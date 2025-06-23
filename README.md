@@ -1,6 +1,7 @@
 # FirefoxCSSMinimal
 
 Minimal userChrome.css for Firefox.
+![Final look](example.png)
 
 ## Toolbar Customization
 

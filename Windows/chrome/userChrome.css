@@ -1,88 +1,326 @@
+/* ==========================================================================
+   userChrome.css
+   Single-row Firefox layout: tabs on the left, nav-bar on the right.
+   Goes in: <profile folder>/chrome/userChrome.css
+   Requires: toolkit.legacyUserProfileCustomizations.stylesheets = true
+             (about:config)
+   Tip: to find selectors after an update, open the Browser Toolbox
+        (Ctrl+Shift+Alt+I) and use the inspector's element picker.
+   ========================================================================== */
+
+
+/* ==========================================================================
+   1. Variables (the main things you will want to adjust)
+   ========================================================================== */
+
 :root {
-  /* Set preferred size of url bar */
-  --url-max-width: 300px;
-  --url-max-width-focused: 600px;
+    /* Width of the nav-bar (URL bar area) in the single-row layout.
+       Units are required, otherwise the width rules below are ignored. */
+    --navbarWidth: 510px;
 
-  /* Change depending on size of ui elements present */
-  --navbar-elements-left: 128px;
-  --navbar-elements-right: 64px;
+    /* --- Active tab line (top edge of the selected tab) ---
+       The colour is derived from the tab's own text colour (currentColor).
+       Themes and colour-changing extensions always keep text readable against
+       their background, so the line always contrasts, whatever the site colour.
+       --active-tab-line-strength: 100% = same as text, lower = more subtle. */
+    --active-tab-line-strength: 80%;
+    --active-tab-line-color: color-mix(in srgb, currentColor var(--active-tab-line-strength), transparent);
+    --active-tab-line-height: 4px;
 
-  
-  --navbar-width-left: calc(var(--url-max-width) + var(--navbar-elements-left));
-  --navbar-width-left-focused: calc(var(--url-max-width-focused) + var(--navbar-elements-left));
-  --navbar-up-offset: -44px;
-  --navbar-bot: 4px; 
-  --windows-buttons-width: 128px;
-  
-  --tab-border-radius: 16px !important;
-  --toolbar-bgcolor: rgba(255, 255, 255, 0) !important;
+    /* Alternatives for --active-tab-line-color (use one instead of the above):
+         fixed colour:   rgb(128, 128, 128)
+         theme accent:   var(--lwt-accent-color)
+         always white:   #ffffff                                          */
+
+    /* --- Tab background colours ---
+       "transparent" keeps the flat look. Translucent mixes with currentColor
+       adapt to the theme, e.g.:
+         color-mix(in srgb, currentColor 12%, transparent)
+       Solid colours work too, but may clash when an extension recolours
+       the UI. Unselected tabs keep Firefox's own hover effect. */
+    --selected-tab-bg: color-mix(in srgb, var(--active-tab-line-color) 20%, transparent);
+
+    /* Unselected tabs fade from --unselected-tab-bg at the bottom to
+       --unselected-tab-bg-top at the top. To turn the fade off, set
+       --unselected-tab-bg-top to the same value as --unselected-tab-bg.
+       Direction: "to top", "to bottom", "to right", "to left". */
+    --unselected-tab-bg: color-mix(in srgb, var(--active-tab-line-color) 15%, transparent);
+    --unselected-tab-bg-top: transparent;
+    --unselected-tab-gradient-direction: to top;
+
+    /* Colour and strength of the shadow under the toolbox */
+    --toolbox-shadow-color: rgba(128, 128, 128, 0.3);
+
+    /* Corner radius of the URL bar and its elements (dropdown, buttons,
+       icons). 0px = rectangular, 4px = slightly rounded, 999px = pill. */
+    --url-bar-radius: 10px;
+
+    /* Firefox's own URL bar radius variables, pointed at ours */
+    --urlbar-container-radius: var(--url-bar-radius) !important;
+    --urlbar-inner-radius: var(--url-bar-radius) !important;
+
+    /* Flat, transparent look */
+    --tab-border-radius: 10px !important;
+    --toolbar-bgcolor: rgba(255, 255, 255, 0) !important;
+    --tab-selected-shadow: rgba(255, 255, 255, 0) !important;
+    --tab-selected-bgcolor: rgba(255, 255, 255, 0) !important;
+    --tab-selected-outline-color: rgba(255, 255, 255, 0) !important;
+    --toolbarbutton-border-radius: 0px !important;
+    --urlbar-box-bgcolor: rgba(255, 255, 255, 0.05) !important;
+
+    /* Removes the gap above tabs so they reach the top edge of the screen
+       (restores the click area at the very top). Set to e.g. 2px to bring
+       the gap back. */
+    --tab-block-margin: 0px !important;
+    
+    /* Toolbar background color, make transparent for consistent look when using "Adaptive Tab Bar Color" extension */
+    --toolbar-background-color: tranparent !important;
 }
 
-#nav-bar {
-  margin: var(--navbar-up-offset) var(--windows-buttons-width) var(--navbar-bot) 0px !important;
-  pointer-events: none !important;
-}
-body:has(#urlbar[open]) #nav-bar {
-  margin: var(--navbar-up-offset) var(--windows-buttons-width) var(--navbar-bot) 0px !important;
+
+/* ==========================================================================
+   2. Single-row layout (tabs + nav-bar on one line)
+   Only applies when the window is wide enough. Media queries cannot use
+   variables, so change the 1400px breakpoint here directly if needed.
+   ========================================================================== */
+
+@media (min-width: 1400px) {
+    #navigator-toolbox {
+        display: flex;
+        flex-direction: row-reverse;
+        flex-wrap: wrap;
+    }
+
+    /* URL bar / nav-bar (ends up on the right) */
+    #nav-bar {
+        order: 1;
+        width: var(--navbarWidth);
+    }
+
+    /* Tab bar (fills the remaining width on the left) */
+    #titlebar {
+        order: 2;
+        width: calc(100vw - var(--navbarWidth) - 1px);
+    }
+
+    /* Bookmarks bar (full width underneath) */
+    #PersonalToolbar {
+        order: 3;
+        width: 100%;
+    }
+
+    /* Fix the URL bar sometimes being misaligned vertically */
+    :root[uidensity="compact"] #urlbar {
+        --urlbar-toolbar-height: 39.60px !important;
+    }
+
+    :root[uidensity="touch"] #urlbar {
+        --urlbar-toolbar-height: 49.00px !important;
+    }
 }
 
-#nav-bar toolbarbutton, #nav-bar .urlbar-icon, #urlbar {
-  pointer-events: auto !important;
-}
-.panel-view,
-.panel-arrowcontent,
-#customizationui-widget-panel,
-.panel-subview-body {
-  pointer-events: auto !important;
-}
 
+/* ==========================================================================
+   3. Tabs
+   ========================================================================== */
 
-
-
-#TabsToolbar{
-  margin-left: var(--navbar-width-left) !important;
-}
-body:has(#urlbar[open]) #TabsToolbar {
-  margin-left: var(--navbar-width-left-focused) !important;
+/* Let tabs use the full height so the top edge of the screen is clickable */
+.tabbrowser-tab {
+    padding-block: 0 !important;
 }
 
+.tab-background {
+    margin-block: 0 !important;
+}
+
+/* Tab background colours */
+.tabbrowser-tab[selected] .tab-background,
+.tabbrowser-tab[multiselected] .tab-background {
+    background: var(--selected-tab-bg) !important;
+}
+
+.tabbrowser-tab:not([selected]):not([multiselected]):not(:hover) .tab-background {
+    background: linear-gradient(
+        var(--unselected-tab-gradient-direction),
+        var(--unselected-tab-bg),
+        var(--unselected-tab-bg-top)
+    ) !important;
+}
+
+/* Line at the top of the active tab (also for multi-selected tabs).
+   Applied to .tab-background because that is the visible part of the tab. */
+.tabbrowser-tab[selected] .tab-background,
+.tabbrowser-tab[multiselected] .tab-background {
+    border-top: var(--active-tab-line-height) solid var(--active-tab-line-color) !important;
+}
+
+/* Remove the gap after pinned tabs */
+#tabbrowser-tabs[haspinnedtabs]:not([positionpinnedtabs])
+> #tabbrowser-arrowscrollbox
+> .tabbrowser-tab[first-visible-unpinned-tab] {
+    margin-inline-start: 0 !important;
+}
+
+/* Remove the empty space to the left and right of the tab strip */
+.titlebar-spacer {
+    display: none !important;
+}
+
+
+/* ==========================================================================
+   4. Toolbox shadow
+   Drawn as an overlay on top of the toolbars. A normal inset box-shadow is
+   painted underneath child elements, so the nav-bar background would hide it.
+   ========================================================================== */
+
+#navigator-toolbox {
+    position: relative;
+    box-shadow: none !important;
+    border-bottom: none !important;
+}
+
+#navigator-toolbox::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none; /* clicks pass straight through */
+    box-shadow: 0 -16px 4px -16px var(--toolbox-shadow-color) inset;
+}
+
+
+/* ==========================================================================
+   5. Simplifying the interface
+   ========================================================================== */
+
+/* Auto-hide the back/forward buttons when they are disabled */
+#back-button,
+#forward-button {
+    transform: scale(1, 1) !important;
+    transition: margin-left 150ms var(--animation-easing-function),
+                opacity 250ms var(--animation-easing-function),
+                transform 350ms var(--animation-easing-function) !important;
+}
+
+#back-button[disabled="true"],
+#forward-button[disabled="true"] {
+    margin-left: -34px !important;
+    opacity: 0 !important;
+    transform: scale(0.8, 0.8) !important;
+    pointer-events: none !important;
+}
+
+/* Hide UI elements. Delete a line (mind the commas) to bring it back. */
+#identity-box,                                  /* Site information */
+#tracking-protection-icon-container,            /* Shield icon */
+#page-action-buttons > :not(#urlbar-zoom-button), /* All URL bar icons except zoom level.
+                                                   To keep the bookmark star too, use:
+                                                   :not(#urlbar-zoom-button, #star-button-box) */
+#urlbar-go-button,                              /* Search / go button */
+#alltabs-button {                               /* "List all tabs" menu */
+    display: none !important;
+}
+
+/* Optional: also hide the window buttons (minimise / maximise / close).
+   Uncomment to use.
+.titlebar-buttonbox-container {
+    display: none !important;
+}
+*/
+
+/* Hide the menu bar */
+#toolbar-menubar {
+    display: none;
+}
+
+/* Shrink the hamburger menu button to almost nothing */
+#PanelUI-menu-button {
+    padding: 0px !important;
+}
+
+#PanelUI-menu-button .toolbarbutton-icon {
+    width: 1px !important;
+}
+
+#PanelUI-menu-button .toolbarbutton-badge-stack {
+    padding: 0px !important;
+}
+
+/* Fix the URL bar overlapping neighbouring elements */
 #urlbar-container {
-  max-width: var(--url-max-width);
-}
-body:has(#urlbar[open]) #urlbar-container{
-  max-width: var(--url-max-width-focused) !important;
+    min-width: initial !important;
 }
 
-
-
-.titlebar-spacer[type="post-tabs"] {
-  width: var(--navbar-elements-right) !important;
-}
-
-.titlebar-spacer[type="pre-tabs"] {
-  display: none !important;
-}
-
-#unified-extensions-button{
-  margin-left: auto !important;
-  margin-right: 0px !important;
+/* Small padding around the URL text */
+.urlbar-input-box {
+    padding: 0.25em !important;
 }
 
 
-.tabbrowser-tab:not([selected]) .tab-background {
-  background-color: rgba(120, 120, 120, 0.10) !important;
+/* ==========================================================================
+   5b. URL bar shape
+   All radii are controlled by --url-bar-radius in section 1.
+   ========================================================================== */
+
+/* Firefox defines its radius variables on #urlbar itself, which overrides
+   anything set on :root, so they are set again here. */
+#urlbar,
+#urlbar-container {
+    --urlbar-container-radius: var(--url-bar-radius) !important;
+    --urlbar-inner-radius: var(--url-bar-radius) !important;
+    --toolbarbutton-border-radius: var(--url-bar-radius) !important;
 }
 
-.tabbrowser-tab .tab-background {
-  border-radius: 16px !important;
-  border: 1px solid rgba(0, 0, 0, 0.08) !important;
-  height: 32px !important;
+/* The search engine button (Google icon) is a <moz-button> custom element.
+   Its rounded shape lives inside a shadow root, which normal selectors cannot
+   reach, so it is reached through its exposed part and its own variables. */
+.searchmode-switcher {
+    --button-border-radius: var(--url-bar-radius) !important;
+    --border-radius-small: var(--url-bar-radius) !important;
+    --border-radius-circle: var(--url-bar-radius) !important;
 }
 
-#urlbar-background,#urlbar {
-  border-radius: 16px !important;
-  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+.searchmode-switcher::part(button) {
+    border-radius: var(--url-bar-radius) !important;
 }
-#urlbar-searchmode-switcher, #identity-icon-box, #tracking-protection-icon-container {
-  border-radius: 16px !important;
+
+/* The bar itself, plus everything inside it (background, search-mode
+   switcher, icons, buttons and the results dropdown). Using a wildcard means
+   this keeps working when Firefox renames inner elements. */
+#urlbar,
+#urlbar *,
+#urlbar-container,
+#urlbar-zoom-button,
+#searchmode-switcher,
+#searchmode-switcher-chicklet {
+    border-radius: var(--url-bar-radius) !important;
 }
+
+
+/* ==========================================================================
+   6. Optional: solid accent colour for titlebar / nav-bar / URL bar
+   Off by default. To enable, remove the comment markers around the block.
+
+:root {
+    --accent-color: #1c1b22;
+}
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --accent-color: #FAFAFC;
+    }
+}
+
+#titlebar,
+toolbar#nav-bar,
+#urlbar,
+#urlbar-background {
+    background: var(--accent-color) !important;
+    box-shadow: none !important;
+}
+
+#urlbar-background,
+#urlbar-input-container {
+    border: none !important;
+}
+   ========================================================================== */
